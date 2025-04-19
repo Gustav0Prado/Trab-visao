@@ -3,18 +3,12 @@
 import cv2, sys, math
 import numpy as np
 import matplotlib.pyplot as plt
-from glob import glob
-
-image_path  = sys.argv[1]
-image_paths = glob(image_path)
-
 
 # Filtros baseados em derivadas
-# Não sei se estão certos
 filtros = {
-    'Derivada Horizontal 1': np.array([[-1, 0, 1],
-                                       [-2, 0, 2],
-                                       [-1, 0, 1]]),
+    'Derivada Horizontal': np.array([[-1, 0, 1],
+                                     [-2, 0, 2],
+                                     [-1, 0, 1]]),
     
     'Derivada Horizontal 2': np.array([[-1, -2,  0,  2,  1],
                                        [-4, -8,  0,  8,  4],
@@ -103,22 +97,11 @@ filtros = {
                             [ 0,  0,  0, -1,  0,  0,  0]]),
 }
 
-# Número de filtros
-n = len(filtros)
-    
-# Processa e exibe as imagens
-for caminho in image_paths:
-    img = cv2.imread(caminho, cv2.IMREAD_GRAYSCALE)
-
-    kernel_results = {}
-    for kernel_name, kernel in filtros.items():
-        filtered = cv2.filter2D(img, -1, kernel)
-        kernel_results[kernel_name] = filtered
-    
+def plot_images(kernel_results):
     # Plotar as imagens de saída
     # Define número de colunas desejado
     cols = 5
-    rows = math.ceil(n / cols)
+    rows = math.ceil(len(filtros) / cols)
 
     # Cria os subplots (grid de rows x cols)
     fig, axes = plt.subplots(rows, cols, figsize=(4 * cols, 4 * rows))
@@ -137,3 +120,31 @@ for caminho in image_paths:
     plt.get_current_fig_manager().window.showMaximized()
     plt.tight_layout()
     plt.show()
+    
+def normalize_image(filtered):
+    # Remove valores negativos ?????????
+    filtered = np.abs(filtered)
+    
+    # Normaliza imagem
+    filtered = cv2.normalize(filtered, None, 0, 255, cv2.NORM_MINMAX)
+    filtered = filtered.astype(np.uint8)
+    
+    return filtered
+
+###########################################################################################
+# Função principal
+
+image_path  = sys.argv[1]
+
+# Processa e exibe as imagens
+img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+kernel_results = {}
+for kernel_name, kernel in filtros.items():
+    filtered = cv2.filter2D(img, cv2.CV_64F, kernel)
+    filtered = normalize_image(filtered)
+    
+    # Insere no dic de resultados
+    kernel_results[kernel_name] = filtered
+
+plot_images(kernel_results)
