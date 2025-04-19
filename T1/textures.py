@@ -122,7 +122,7 @@ def plot_images(kernel_results):
     plt.show()
     
 def normalize_image(filtered):
-    # Remove valores negativos ?????????
+    # Remove valores negativos
     filtered = np.abs(filtered)
     
     # Normaliza imagem
@@ -130,6 +130,17 @@ def normalize_image(filtered):
     filtered = filtered.astype(np.uint8)
     
     return filtered
+
+def sliding_window(img):
+    features = []
+    window_size = 16
+    
+    for y in range(0, img.shape[0] - window_size + 1, window_size):
+        for x in range(0, img.shape[1] - window_size + 1, window_size):
+            features.append(np.mean(img[y:y+window_size, x:x+window_size]))
+            
+    return features
+            
 
 ###########################################################################################
 # Função principal
@@ -139,10 +150,14 @@ image_path  = sys.argv[1]
 # Processa e exibe as imagens
 img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
+all_features = []
 kernel_results = {}
 for kernel_name, kernel in filtros.items():
     filtered = cv2.filter2D(img, cv2.CV_64F, kernel)
     filtered = normalize_image(filtered)
+    
+    # Passa janela deslizante para extrair features da textura
+    all_features.append(sliding_window(filtered))
     
     # Insere no dic de resultados
     kernel_results[kernel_name] = filtered
