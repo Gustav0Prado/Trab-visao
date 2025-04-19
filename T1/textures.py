@@ -122,7 +122,7 @@ for caminho in image_paths:
 
     # Cria os subplots (grid de rows x cols)
     fig, axes = plt.subplots(rows, cols, figsize=(4 * cols, 4 * rows))
-    axes = axes.flatten()  # Transforma em lista 1D para iterar facilmente
+    axes = axes.reshape(rows, cols).T.flatten()
 
     # Preenche os plots
     for i, (nome, resultado) in enumerate(kernel_results.items()):
@@ -134,5 +134,6 @@ for caminho in image_paths:
     for j in range(len(kernel_results), len(axes)):
         axes[j].axis('off')
 
+    plt.get_current_fig_manager().window.showMaximized()
     plt.tight_layout()
     plt.show()
