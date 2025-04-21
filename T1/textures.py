@@ -3,6 +3,7 @@
 import cv2, sys, math
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 
 # Filtros baseados em derivadas
 filtros = {
@@ -131,15 +132,18 @@ def normalize_image(filtered):
     
     return filtered
 
+def apply_filters(img):
+    kernel_results = {}
+    for kernel_name, kernel in filtros.items():
+        filtered = cv2.filter2D(img, cv2.CV_64F, kernel)
+        # filtered = normalize_image(filtered)
+        
+        # Insere no dic de resultados
+        kernel_results[kernel_name] = filtered
+    return kernel_results
+
 def sliding_window(img):
-    features = []
-    window_size = 16
-    
-    for y in range(0, img.shape[0] - window_size + 1, window_size):
-        for x in range(0, img.shape[1] - window_size + 1, window_size):
-            features.append(np.mean(img[y:y+window_size, x:x+window_size]))
-            
-    return features
+    pass
             
 
 ###########################################################################################
@@ -150,16 +154,65 @@ image_path  = sys.argv[1]
 # Processa e exibe as imagens
 img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
-all_features = []
-kernel_results = {}
-for kernel_name, kernel in filtros.items():
-    filtered = cv2.filter2D(img, cv2.CV_64F, kernel)
-    filtered = normalize_image(filtered)
-    
-    # Passa janela deslizante para extrair features da textura
-    all_features.append(sliding_window(filtered))
-    
-    # Insere no dic de resultados
-    kernel_results[kernel_name] = filtered
+kernel_results = apply_filters(img)
 
-plot_images(kernel_results)
+# calculando vetores das janelas
+height, width = img.shape
+features = []
+
+window_size = 5
+
+for y in range(0, height, window_size):
+    for x in range(0, width, window_size):
+        vet = []
+        for filter,res in kernel_results.items():
+            sliding_window = res[y:y+window_size, x:x+window_size]
+            mean = np.mean(sliding_window)
+            vet.append(mean)   
+        features.append(vet)
+
+print(len(features))
+
+# k-means
+n_clusters = 3
+
+kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+labels = kmeans.fit_predict(features)
+
+# Reconstrução da imagem segmentada
+cores = [ # Cores para os clusters
+    (255, 0, 0),    # vermelho
+    (0, 255, 0),    # verde
+    (0, 0, 255),    # azul
+    (255, 255, 0),  # amarelo
+    (0, 255, 255),  # ciano
+    (255, 0, 255),  # magenta
+]
+
+# Criar imagem de overlay colorido
+img_colorida = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+overlay = img_colorida.copy()
+alpha = 0.3  # transparência
+
+i = 0
+for y in range(0, height, window_size):
+    for x in range(0, width, window_size):
+        cor = cores[labels[i] % len(cores)]
+        overlay[y:y+window_size, x:x+window_size] = cor
+        i += 1
+
+# Combinar overlay com a imagem original
+img_segmentada = cv2.addWeighted(overlay, alpha, img_colorida, 1 - alpha, 0)
+kernel_results['k-means'] = img_segmentada
+
+# plotando imagens
+plt.figure(figsize=(16, 9))  # Tamanho da figura
+
+for i, (nome,img) in enumerate(kernel_results.items()):
+    # plt.subplot(3, 3, i+1)  # 3 linhas, 3 colunas
+    plt.imshow(img, cmap='gray')
+    plt.title(nome)
+    plt.axis('off')
+
+plt.tight_layout()
+plt.show()
