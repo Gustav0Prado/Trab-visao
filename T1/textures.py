@@ -1,11 +1,15 @@
 #!/usr/bin/python3
 
-import cv2, sys, math
+import cv2, sys
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
-# Filtros baseados em derivadas
+WINDOW_SIZE   = 4
+NUM_CLUSTERS  = 3
+RANDOM_NUMBER = 0
+
+# Filtros baseados em derivadas de tamanho 3, 5 e 7
 filtros = {
     'Derivada Horizontal': np.array([[-1, 0, 1],
                                      [-2, 0, 2],
@@ -98,72 +102,44 @@ filtros = {
                             [ 0,  0,  0, -1,  0,  0,  0]]),
 }
 
-def plot_images(kernel_results):
-    # Plotar as imagens de saída
-    # Define número de colunas desejado
-    cols = 5
-    rows = math.ceil(len(filtros) / cols)
-
-    # Cria os subplots (grid de rows x cols)
-    fig, axes = plt.subplots(rows, cols, figsize=(4 * cols, 4 * rows))
-    axes = axes.reshape(rows, cols).T.flatten()
-
-    # Preenche os plots
-    for i, (nome, resultado) in enumerate(kernel_results.items()):
-        axes[i].imshow(resultado, cmap='gray')
-        axes[i].set_title(nome)
-        axes[i].axis('off')
-
-    # Desliga os plots extras (caso sobrem espaços vazios)
-    for j in range(len(kernel_results), len(axes)):
-        axes[j].axis('off')
-
-    plt.get_current_fig_manager().window.showMaximized()
-    plt.tight_layout()
-    plt.show()
-    
-def normalize_image(filtered):
-    # Remove valores negativos
-    filtered = np.abs(filtered)
-    
-    # Normaliza imagem
-    filtered = cv2.normalize(filtered, None, 0, 255, cv2.NORM_MINMAX)
-    filtered = filtered.astype(np.uint8)
-    
-    return filtered
+#################################################################################################
 
 def apply_filters(img):
     kernel_results = {}
     for kernel_name, kernel in filtros.items():
-        filtered = cv2.filter2D(img, cv2.CV_64F, kernel)
-        # filtered = normalize_image(filtered)
+        filtered = cv2.filter2D(img, -1, kernel)
         
-        # Insere no dic de resultados
         kernel_results[kernel_name] = filtered
     return kernel_results
+
+#################################################################################################
 
 def sliding_window(kernel_results, img):
     height, width = img.shape
     features = []
 
-    window_size = 5
-
-    for y in range(0, height, window_size):
-        for x in range(0, width, window_size):
+    for y in range(0, height, WINDOW_SIZE):
+        for x in range(0, width, WINDOW_SIZE):
             vet = []
             for filter,res in kernel_results.items():
-                sliding_window = res[y:y+window_size, x:x+window_size]
+                sliding_window = res[y:y+WINDOW_SIZE, x:x+WINDOW_SIZE]
                 mean = np.mean(sliding_window)
                 vet.append(mean)   
             features.append(vet)
             
     return features
             
-            
-def k_means(n_clusters, features, img):
-    kmeans = KMeans(n_clusters=n_clusters, random_state=0)
-    labels = kmeans.fit_predict(features)
+#################################################################################################            
 
+def k_means(n_clusters, features):
+    kmeans = KMeans(n_clusters=n_clusters, random_state=RANDOM_NUMBER)
+    labels = kmeans.fit_predict(features)
+    
+    return labels
+
+#################################################################################################
+
+def plot_image(labels, img):
     # Reconstrução da imagem segmentada
     cores = [ # Cores para os clusters
         (255, 0, 0),    # vermelho
@@ -178,45 +154,33 @@ def k_means(n_clusters, features, img):
     img_colorida = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     overlay = img_colorida.copy()
     alpha = 0.3  # transparência
-    
+
     height, width = img.shape
-
-    window_size = 5
-
     i = 0
-    for y in range(0, height, window_size):
-        for x in range(0, width, window_size):
+    for y in range(0, height, WINDOW_SIZE):
+        for x in range(0, width, WINDOW_SIZE):
             cor = cores[labels[i] % len(cores)]
-            overlay[y:y+window_size, x:x+window_size] = cor
+            overlay[y:y+WINDOW_SIZE, x:x+WINDOW_SIZE] = cor
             i += 1
 
     # Combinar overlay com a imagem original
     img_segmentada = cv2.addWeighted(overlay, alpha, img_colorida, 1 - alpha, 0)
-    kernel_results['k-means'] = img_segmentada
 
-    # plotando imagens
+    # Plotar a imagem com segmentação
     plt.figure(figsize=(16, 9))  # Tamanho da figura
-
-    for i, (nome,img) in enumerate(kernel_results.items()):
-        # plt.subplot(3, 3, i+1)  # 3 linhas, 3 colunas
-        plt.imshow(img, cmap='gray')
-        plt.title(nome)
-        plt.axis('off')
-
-    plt.tight_layout()
+    plt.imshow(img_segmentada, cmap='gray')
+    plt.title("Imagem segmentada com K-Means")
+    plt.axis('off')
     plt.show()
 
 ###########################################################################################
 # Função principal
 
-image_path  = sys.argv[1]
+image_path = sys.argv[1]
 
-# Processa e exibe as imagens
+# Processa imagem
 img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-
 kernel_results = apply_filters(img)
-
 features = sliding_window(kernel_results, img)
-
-# k-means
-k_means(2, features, img)
+labels = k_means(NUM_CLUSTERS, features)
+plot_image(labels, img)
