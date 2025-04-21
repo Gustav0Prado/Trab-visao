@@ -142,9 +142,69 @@ def apply_filters(img):
         kernel_results[kernel_name] = filtered
     return kernel_results
 
-def sliding_window(img):
-    pass
+def sliding_window(kernel_results, img):
+    height, width = img.shape
+    features = []
+
+    window_size = 5
+
+    for y in range(0, height, window_size):
+        for x in range(0, width, window_size):
+            vet = []
+            for filter,res in kernel_results.items():
+                sliding_window = res[y:y+window_size, x:x+window_size]
+                mean = np.mean(sliding_window)
+                vet.append(mean)   
+            features.append(vet)
             
+    return features
+            
+            
+def k_means(n_clusters, features, img):
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+    labels = kmeans.fit_predict(features)
+
+    # Reconstrução da imagem segmentada
+    cores = [ # Cores para os clusters
+        (255, 0, 0),    # vermelho
+        (0, 255, 0),    # verde
+        (0, 0, 255),    # azul
+        (255, 255, 0),  # amarelo
+        (0, 255, 255),  # ciano
+        (255, 0, 255),  # magenta
+    ]
+
+    # Criar imagem de overlay colorido
+    img_colorida = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    overlay = img_colorida.copy()
+    alpha = 0.3  # transparência
+    
+    height, width = img.shape
+
+    window_size = 5
+
+    i = 0
+    for y in range(0, height, window_size):
+        for x in range(0, width, window_size):
+            cor = cores[labels[i] % len(cores)]
+            overlay[y:y+window_size, x:x+window_size] = cor
+            i += 1
+
+    # Combinar overlay com a imagem original
+    img_segmentada = cv2.addWeighted(overlay, alpha, img_colorida, 1 - alpha, 0)
+    kernel_results['k-means'] = img_segmentada
+
+    # plotando imagens
+    plt.figure(figsize=(16, 9))  # Tamanho da figura
+
+    for i, (nome,img) in enumerate(kernel_results.items()):
+        # plt.subplot(3, 3, i+1)  # 3 linhas, 3 colunas
+        plt.imshow(img, cmap='gray')
+        plt.title(nome)
+        plt.axis('off')
+
+    plt.tight_layout()
+    plt.show()
 
 ###########################################################################################
 # Função principal
@@ -156,63 +216,7 @@ img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
 kernel_results = apply_filters(img)
 
-# calculando vetores das janelas
-height, width = img.shape
-features = []
-
-window_size = 5
-
-for y in range(0, height, window_size):
-    for x in range(0, width, window_size):
-        vet = []
-        for filter,res in kernel_results.items():
-            sliding_window = res[y:y+window_size, x:x+window_size]
-            mean = np.mean(sliding_window)
-            vet.append(mean)   
-        features.append(vet)
-
-print(len(features))
+features = sliding_window(kernel_results, img)
 
 # k-means
-n_clusters = 3
-
-kmeans = KMeans(n_clusters=n_clusters, random_state=0)
-labels = kmeans.fit_predict(features)
-
-# Reconstrução da imagem segmentada
-cores = [ # Cores para os clusters
-    (255, 0, 0),    # vermelho
-    (0, 255, 0),    # verde
-    (0, 0, 255),    # azul
-    (255, 255, 0),  # amarelo
-    (0, 255, 255),  # ciano
-    (255, 0, 255),  # magenta
-]
-
-# Criar imagem de overlay colorido
-img_colorida = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-overlay = img_colorida.copy()
-alpha = 0.3  # transparência
-
-i = 0
-for y in range(0, height, window_size):
-    for x in range(0, width, window_size):
-        cor = cores[labels[i] % len(cores)]
-        overlay[y:y+window_size, x:x+window_size] = cor
-        i += 1
-
-# Combinar overlay com a imagem original
-img_segmentada = cv2.addWeighted(overlay, alpha, img_colorida, 1 - alpha, 0)
-kernel_results['k-means'] = img_segmentada
-
-# plotando imagens
-plt.figure(figsize=(16, 9))  # Tamanho da figura
-
-for i, (nome,img) in enumerate(kernel_results.items()):
-    # plt.subplot(3, 3, i+1)  # 3 linhas, 3 colunas
-    plt.imshow(img, cmap='gray')
-    plt.title(nome)
-    plt.axis('off')
-
-plt.tight_layout()
-plt.show()
+k_means(2, features, img)
