@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 
-import cv2, sys
+import cv2, sys, random
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
 WINDOW_SIZE   = 4
 NUM_CLUSTERS  = 3
-RANDOM_NUMBER = 0
+RANDOM_NUMBER = random.randint(0, 100)
 
 # Filtros baseados em derivadas de tamanho 3, 5 e 7
 filtros = {
@@ -105,9 +105,13 @@ filtros = {
 #################################################################################################
 
 def apply_filters(img):
-    kernel_results = {}
+    kernel_results = {'Original: ': img}
     for kernel_name, kernel in filtros.items():
-        filtered = cv2.filter2D(img, -1, kernel)
+        filtered = cv2.filter2D(img, cv2.CV_64F, kernel)
+        
+        filtered = np.abs(filtered)
+        filtered = cv2.normalize(filtered, None, 0, 255, cv2.NORM_MINMAX)
+        filtered = filtered.astype(np.uint8)
         
         kernel_results[kernel_name] = filtered
     return kernel_results
@@ -131,8 +135,8 @@ def sliding_window(kernel_results, img):
             
 #################################################################################################            
 
-def k_means(n_clusters, features):
-    kmeans = KMeans(n_clusters=n_clusters, random_state=RANDOM_NUMBER)
+def k_means(features):
+    kmeans = KMeans(n_clusters=NUM_CLUSTERS, random_state=RANDOM_NUMBER)
     labels = kmeans.fit_predict(features)
     
     return labels
@@ -153,7 +157,7 @@ def plot_image(labels, img):
     # Criar imagem de overlay colorido
     img_colorida = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     overlay = img_colorida.copy()
-    alpha = 0.3  # transparência
+    alpha = 0.5  # transparência
 
     height, width = img.shape
     i = 0
@@ -165,13 +169,25 @@ def plot_image(labels, img):
 
     # Combinar overlay com a imagem original
     img_segmentada = cv2.addWeighted(overlay, alpha, img_colorida, 1 - alpha, 0)
+    kernel_results['k-means'] = img_segmentada
 
     # Plotar a imagem com segmentação
     plt.figure(figsize=(16, 9))  # Tamanho da figura
+    
+    # Plota todos os filtros
+    # for i, (name, res) in enumerate(kernel_results.items()):
+    #     plt.subplot(5, 5, i+1)
+    #     plt.imshow(res, cmap='gray')
+    #     plt.title(name)
+    #     plt.axis('off')
+    # plt.tight_layout()
+    # plt.show()
+    
     plt.imshow(img_segmentada, cmap='gray')
     plt.title("Imagem segmentada com K-Means")
     plt.axis('off')
     plt.show()
+    
 
 ###########################################################################################
 # Função principal
@@ -182,5 +198,5 @@ image_path = sys.argv[1]
 img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 kernel_results = apply_filters(img)
 features = sliding_window(kernel_results, img)
-labels = k_means(NUM_CLUSTERS, features)
+labels = k_means(features)
 plot_image(labels, img)
