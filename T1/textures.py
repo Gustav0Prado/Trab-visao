@@ -157,7 +157,7 @@ def plot_image(labels, img):
     # Criar imagem de overlay colorido
     img_colorida = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     overlay = img_colorida.copy()
-    alpha = 0.5  # transparência
+    alpha = 0.3  # transparência
 
     height, width = img.shape
     i = 0
