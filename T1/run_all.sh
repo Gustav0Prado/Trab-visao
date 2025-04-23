@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in ./imgs/photo_{1..16}.jpg
+for i in ./imgs/{1..16}.*
 do
     if test -f "$i" 
     then
