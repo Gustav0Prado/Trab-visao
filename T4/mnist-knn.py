@@ -10,10 +10,10 @@ parser = argparse.ArgumentParser(
                     prog='Programa de testes usando MNIST',
                     description='Realiza teste no dataset MNIST usando os parametros passados')
 
-parser.add_argument('kneighbours')
-parser.add_argument('metric')
-parser.add_argument('test_size')
-parser.add_argument('val_size')
+parser.add_argument('kneighbours') # Quantidade de neighbours do kNN, num > 0
+parser.add_argument('metric') # Metrica pode ser distância de Manhattan (1) ou distância Euclidiana (2)
+parser.add_argument('test_size') # Porcentagem do conjunto destinada ao teste
+parser.add_argument('val_size') # Porcentagem do conjunto destinada a validação
 
 args = parser.parse_args()
 

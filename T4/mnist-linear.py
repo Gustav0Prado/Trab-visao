@@ -10,8 +10,8 @@ parser = argparse.ArgumentParser(
                     prog='Programa de testes usando MNIST',
                     description='Realiza teste no dataset MNIST usando os parametros passados')
 
-parser.add_argument('test_size')
-parser.add_argument('val_size')
+parser.add_argument('test_size') # Porcentagem do conjunto destinada ao teste
+parser.add_argument('val_size') # Porcentagem do conjunto destinada a validação
 
 args = parser.parse_args()
 
