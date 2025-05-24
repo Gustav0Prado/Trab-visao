@@ -11,11 +11,13 @@ parser = argparse.ArgumentParser(
                     description='Realiza teste no dataset MNIST usando os parametros passados')
 
 parser.add_argument('test_size')
+parser.add_argument('val_size')
 
 args = parser.parse_args()
 
 # Carrega varáveis da linha de comando
 TEST_SIZE = float(args.test_size)
+VAL_SIZE = float(args.val_size)
 
 # Carregar o dataset MNIST
 mnist = load_digits()
@@ -24,7 +26,7 @@ y = mnist.target
 
 # Separa os conjuntos de teste e treino
 X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=TEST_SIZE, random_state=42)
-X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.25, random_state=42)
+X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=VAL_SIZE, random_state=42)
 
 # Treina o classificador
 sgdc = SGDClassifier(random_state=42)
