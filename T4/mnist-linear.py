@@ -2,7 +2,8 @@
 
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import SGDClassifier 
+from sklearn.linear_model import SGDClassifier
+from sklearn.decomposition import PCA
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.decomposition import PCA
 import argparse
@@ -13,20 +14,22 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('test_size') # Porcentagem do conjunto destinada ao teste
 parser.add_argument('val_size') # Porcentagem do conjunto destinada a validação
+parser.add_argument('num_components') # Porcentagem de componentes do PCA
 
 args = parser.parse_args()
 
 # Carrega varáveis da linha de comando
 TEST_SIZE = float(args.test_size)
 VAL_SIZE = float(args.val_size)
+NUM_COMPONENTS = float(args.num_components)
 
 # Carregar o dataset MNIST
 mnist = fetch_openml('mnist_784')
 X = mnist.data
 y = mnist.target
 
-# Reduzindo dimensionalidade com PCA
-pca = PCA(n_components=100)
+# Reduz dimensionalidade com PCA
+pca = PCA(n_components=NUM_COMPONENTS)
 X = pca.fit_transform(X)
 
 # Separa os conjuntos de teste e treino
