@@ -4,6 +4,7 @@ from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report, accuracy_score
+from sklearn.decomposition import PCA
 import argparse
 
 parser = argparse.ArgumentParser(
@@ -27,6 +28,10 @@ METRIC = int(args.metric)
 mnist = fetch_openml('mnist_784')
 X = mnist.data
 y = mnist.target
+
+# Reduzindo dimensionalidade com PCA
+pca = PCA(n_components=100)
+X = pca.fit_transform(X)
 
 # Separa os conjuntos de teste e treino
 X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=TEST_SIZE, random_state=42)
