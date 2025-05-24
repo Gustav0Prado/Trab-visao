@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from sklearn.datasets import load_digits
+from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import SGDClassifier 
 from sklearn.metrics import classification_report, accuracy_score
@@ -20,7 +20,7 @@ TEST_SIZE = float(args.test_size)
 VAL_SIZE = float(args.val_size)
 
 # Carregar o dataset MNIST
-mnist = load_digits()
+mnist = fetch_openml('mnist_784')
 X = mnist.data
 y = mnist.target
 

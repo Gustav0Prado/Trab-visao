@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from sklearn.datasets import load_digits
+from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report, accuracy_score
@@ -24,13 +24,15 @@ K = int(args.kneighbours)
 METRIC = int(args.metric)
 
 # Carregar o dataset MNIST
-mnist = load_digits()
+mnist = fetch_openml('mnist_784')
 X = mnist.data
 y = mnist.target
 
 # Separa os conjuntos de teste e treino
 X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=TEST_SIZE, random_state=42)
 X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=VAL_SIZE, random_state=42)
+
+print("Dimensionalidade:", X.shape)
 
 # Treina o classificador
 knn = KNeighborsClassifier(n_neighbors=K, p=METRIC)
