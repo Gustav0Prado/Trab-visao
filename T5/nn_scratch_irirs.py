@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """NN-scratch-irirs.ipynb
 
@@ -101,7 +102,7 @@ iris_dataset = np.column_stack((iris_data.data, iris_data.target.T))  # shape (1
 
 # Shuffle the dataset (optional: for reproducibility)
 random.seed(123)
-random.shuffle(iris_dataset)
+# random.shuffle(iris_dataset)
 
 # Split features (X) and labels (y)
 X = np.array([i[:4] for i in iris_dataset])  # shape (150, 4)
@@ -343,8 +344,8 @@ class MultiLayerPerceptron(BaseEstimator, ClassifierMixin):
 
         return self
 
-dictionary = {'InputLayer':4, 'HiddenLayer':5, 'OutputLayer':3,
-              'Epocas':3000, 'LearningRate':0.005,'BiasHiddenValue':-1,
+dictionary = {'InputLayer':4, 'HiddenLayer':16, 'OutputLayer':3,
+              'Epocas':500, 'LearningRate':0.005,'BiasHiddenValue':-1,
               'BiasOutputValue':-1, 'ActivationFunction':'sigmoid'}
 
 Perceptron = MultiLayerPerceptron(dictionary)
