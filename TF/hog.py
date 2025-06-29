@@ -18,8 +18,7 @@ bboxes, weights = hog.detectMultiScale(
 res = img.copy()
 
 for i, (x, y, w, h) in enumerate(bboxes):
-    if weights[i] > 0.6:  # ajuste o limiar conforme necessário
-        cv2.rectangle(res, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    cv2.rectangle(res, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
 print(f"Número de pessoas: {len(bboxes)}")
 
