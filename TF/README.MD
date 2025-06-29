@@ -10,8 +10,14 @@ Nossa ideia é utilizar a rede YOLOv11-face pré-treinada para contar quantas pe
 - matplotlib
 - openCV
 
+## Modelos utilizados
+- HOG
+- HAARCascade
+- ResNet
+- YOLO-face
+
 ## Como Rodar
-python3 persons.py caminho/para/imagem.jpg
+python3 <modelo>.py caminho/para/imagem.jpg
 
 ## Saída
 Um plot mostrando os rostos encontrados na imagem e quantidade deles.

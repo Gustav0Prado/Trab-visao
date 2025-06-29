@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import cv2, sys
-import numpy as np
 import matplotlib.pyplot as plt
 
 img = cv2.imread(sys.argv[1])

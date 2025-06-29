@@ -3,7 +3,6 @@
 import cv2, sys
 import numpy as np
 import matplotlib.pyplot as plt
-import urllib.request
 
 img = cv2.imread(sys.argv[1])
 (h, w) = img.shape[:2]
